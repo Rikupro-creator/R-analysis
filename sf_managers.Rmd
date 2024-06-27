@@ -1,0 +1,291 @@
+---
+title: "Sf employee compensation analysis"
+output:
+  html_document: default
+  word_document: default
+date: "2023-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objectives
+1. An indepth exploration of managers pay in SF.
+2. what is the trend in the average management salary
+3. Which Job categories earn more than managers
+
+```{r cars}
+library(readr)
+employee = read.csv('employee-compensation.csv')
+```
+
+## Data exploration
+lets look at the firts few columns
+```{r pressure, echo=FALSE}
+head(employee)
+```
+
+The table above presents the  first five rows of the data.
+```{r}
+summary(employee)
+```
+in the above table we are presented with the descriptive statistics of the numerical variables in the data.  from it we note that we  have 683277 rows of data. 
+```{r}
+str(employee)
+```
+The data types of the rows are given in the above table. 
+Columns in the data
+
+```{r}
+names(employee)
+```
+These are the columns in the data. Knowing them will help us in the analysis. 
+
+```{r}
+
+```
+
+# subsets of the data
+1. managements
+```{r}
+
+managements=employee[employee$Job.Family=='Management',]
+
+```
+This dataframe  is a subset of those peopel in SF that work in the management.
+
+2. Unions
+
+```{r}
+# lets futher subset the management dataframe to look at the most common union
+table(managements$Union)
+executives_contract=managements[managements$Union=='Executive Contract Employees',]
+```
+This futher subsets the managements dataframe into those who are in the Executive Contract Employees union.
+3.  Year
+
+```{r}
+# explore year first
+managements_2020=managements[managements$Year==2020,]
+head(managements_2020)
+```
+The above subset is for those that  worked in 2020.
+4. year type
+```{r}
+table(managements$Year.Type)
+
+managements_fiscal=managements[managements$Year.Type=='Fiscal',]
+head(managements_fiscal)
+```
+
+There are two year types. In this subset lets look at the fiscal year type.
+
+5. calendar
+
+```{r}
+managements_Calendar=managements[managements$Year.Type=='Calendar',]
+head(managements_Calendar)
+```
+
+# single vector
+1. Jobs vector
+```{r}
+jobs=unique(employee$Job)
+length(jobs)
+
+```
+GThe above vector is a list of jobs in SF. They are the unique jobs taking into account that there can be more than two people performing the same. ROle. 
+2. Job family vector
+```{r}
+head(employee$Job.Family)
+job_family=unique(employee$Job.Family)
+head(job_family)
+
+```
+This vector is for the Job families.  Its the general name that the Job can appear in. 
+3. Union
+Here we create a job vector for the managements union.  The 
+```{r}
+union= as.vector(unique(managements$Union))
+union
+```
+4. Departments code
+```{r}
+department=as.vector(unique(managements$Department))
+department[1:10]
+```
+There are multiple departments hence we  print out the five departments. 
+5. vector of year
+```{r}
+year=as.vector(unique(managements$Year))
+year
+```
+The total  years recorded in the Managements subset is shown above. It starts from 2013 to 2020. 
+#  5 different lists
+1. top five salaries
+```{r}
+sorted_df <- sort(employee$Salaries, decreasing =TRUE)
+
+top_five<- head(sorted_df, 5)
+top_five_salaries=list(top_five)
+```
+2. top five total compensation
+```{r}
+sorted_df <- sort(employee$Total.Compensation, decreasing =TRUE)
+
+top_five<- head(sorted_df, 5)
+top_five_compensation=list(top_five)
+```
+
+
+3. total benefits
+
+
+```{r}
+sorted_df <- sort(employee$Total.Benefits, decreasing =TRUE)
+
+top_five<- head(sorted_df, 5)
+top_five_benefits=list(top_five)
+```
+
+4.  other benefits
+```{r}
+sorted_df <- sort(employee$Other.Benefits, decreasing =TRUE)
+
+top_five<- head(sorted_df, 5)
+top_five_otherbenefits=list(top_five)
+```
+
+5. other salaries
+```{r}
+sorted_df <- sort(employee$Other.Salaries, decreasing =TRUE)
+
+top_five<- head(sorted_df, 5)
+top_five_othersalaries=list(top_five)
+```
+
+#6. conditionals
+1. lets explore the variable overtime
+```{r}
+# we have a new dataframe lets look at their salaries
+
+
+management=managements[,c('Job.Family', "Salaries")]
+head(management)
+
+```
+There are over 21000 managements in  san francisco.
+
+2. How any managers earn above 100000
+
+```{r}
+nrow(management[management$Salaries>100000,])
+```
+These are the number of managers that earn above 100000. Lets filter them to know the ones that  earn above the average of the salaaries of managers
+3. Those who earn above the average
+
+```{r}
+
+
+top_earners=management[management$Salaries<mean(management$Salaries),]
+
+nrow(top_earners)
+```
+
+this prints out only the number of managers that earn above average. 
+# loops
+1. comparison average salary with otehr job categories
+```{r}
+
+
+# Get unique job families
+unique_families <- unique(employee$Job.Family)
+
+# Create an empty vector to store the average salaries
+average_salaries <- numeric(length(unique_families))
+
+# Use a for loop to calculate average salary for each job family
+for (i in 1:length(unique_families)) {
+  family <- unique_families[i]
+  subset_data <- employee[employee$Job.Family == family, ]
+  average_salaries[i] <- mean(subset_data$Salaries)
+}
+
+# Create a data frame to display the results
+result_df <- data.frame(JobFamily = unique_families, AverageSalary = average_salaries)
+
+# Print those that earn more than 
+result_df[result_df$AverageSalary>=mean(management$Salaries),]
+
+
+```
+in the above code, we get the average salary for each job category using for loop that subsets the data basing on the job categories. It then gets the average salary and stores them. where it finally compares them with the final job categories. 
+
+2. use for loops to print the average salary per year
+
+```{r}
+
+# Create a vector of unique years
+unique_years <- unique(managements$Year)
+
+# Initialize an empty vector to store the average salaries
+average_salaries <- numeric(length(unique_years))
+
+# Loop through each unique year
+for (i in 1:length(unique_years)) {
+  year <- unique_years[i]
+  
+  # Subset the DataFrame for the current year
+  subset_df <- managements[managements$Year == year, ]
+  
+  # Calculate the average salary for the current year and store it
+  average_salaries[i] <- mean(subset_df$Salaries)
+}
+
+# Create a new DataFrame with the results
+result_df <- data.frame(year = unique_years, avg_salary = average_salaries)
+
+# Print the result
+print(head(result_df))
+
+
+```
+From the above results we can note  that the managements salaries  have been increasing over the years. 
+
+3. Averages of all the otehr columns in managements using for loops
+```{r}
+# Create an empty data frame to store column names and averages
+result_df <- data.frame(Column = character(), Average = numeric())
+
+# Use a for loop to calculate averages for numeric columns
+for (col in names(managements)) {
+  if (is.numeric(managements[[col]])) {
+    column_avg <- mean(managements[[col]])
+    result_df <- rbind(result_df, data.frame(Column = col, Average = column_avg))
+  }
+}
+
+# Print the data frame
+print(head(result_df))
+
+```
+Here we use for loops to pring that average of all the numeric columns in the managements dataframe that we created. 
+
+
+ 
+# summary
+Managers in SF earn  on average 120669.6.
+only  these job categories ean more than the managers
+
+
+39	Administrative-DPW/PUC	124543.1	
+41	Construction Project Mgmt	126806.2	
+53	Administrative & Mgmt (Unrep)	237005.3	
+58	Unassigned	147929.4	
+
+The research also looked into the trend of the management salaries and it was discovered that from 2013 the salaries have been increasing.  As per  this trend we can note that the managers are often compensated  with the increasing cost of living that has been rising over the years.  However, managers in san francisco   earn more than amny job categories  indicating that  they are less affected by the increasing cost of living as their income is likely to shelter them from  inflation and increasing cost of living. This research focused on Managers. Its recommended that future research should focus on other job categories. 
+
+# conclusion
+
+This information suggests that while managers in San Francisco earn a respectable average salary, there are job categories within the city's workforce that command even higher compensation. From the analysis, we conclude that the managers earn more than the other job categories. 
